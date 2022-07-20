@@ -7,6 +7,7 @@ namespace BuildingRegistry.Api.BackOffice.Handlers.Sqs.BuildingUnit
     using Abstractions.BuildingUnit.Extensions;
     using Be.Vlaanderen.Basisregisters.MessageHandling.AwsSqs.Simple;
     using BuildingRegistry.Api.BackOffice.Abstractions.BuildingUnit.Requests;
+    using BuildingRegistry.Building;
     using MediatR;
     using Microsoft.AspNetCore.Http;
     using Microsoft.Extensions.Logging;
@@ -36,10 +37,7 @@ namespace BuildingRegistry.Api.BackOffice.Handlers.Sqs.BuildingUnit
 
         public async Task<IResult> Handle(SqsRealizeBuildingUnitRequest request, CancellationToken cancellationToken)
         {
-            if (!request.PersistentLocalId.TryGetBuildingIdForBuildingUnit(_backOfficeContext, out var buildingPersistentLocalId))
-            {
-                throw new InvalidOperationException();
-            }
+            var buildingPersistentLocalId = _backOfficeContext.GetBuildingIdForBuildingUnit(request.PersistentLocalId);
 
             request.MessageGroupId = buildingPersistentLocalId.ToString();
 

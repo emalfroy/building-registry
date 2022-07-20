@@ -10,6 +10,8 @@ namespace BuildingRegistry.Api.BackOffice.BuildingUnit
     using Be.Vlaanderen.Basisregisters.Api.ETag;
     using Be.Vlaanderen.Basisregisters.Api.Exceptions;
     using Building;
+    using BuildingRegistry.Api.BackOffice.Abstractions.BuildingUnit.Extensions;
+    using BuildingRegistry.Building;
     using BuildingRegistry.Building.Exceptions;
     using FluentValidation;
     using FluentValidation.Results;
@@ -45,13 +47,10 @@ namespace BuildingRegistry.Api.BackOffice.BuildingUnit
         {
             try
             {
+                var buildingPersistentLocalId = BackOfficeContext.GetBuildingIdForBuildingUnit(request.BuildingUnitPersistentLocalId);
+                
                 if (!string.IsNullOrWhiteSpace(ifMatchHeaderValue))
                 {
-                    if (!TryGetBuildingIdForBuildingUnit(request.BuildingUnitPersistentLocalId, out var buildingPersistentLocalId))
-                    {
-                        return NotFound();
-                    }
-
                     var etag = await GetBuildingUnitEtag(buildingPersistentLocalId, request.BuildingUnitPersistentLocalId, cancellationToken);
 
                     if (!IfMatchHeaderMatchesEtag(ifMatchHeaderValue, etag))
@@ -69,7 +68,7 @@ namespace BuildingRegistry.Api.BackOffice.BuildingUnit
             }
             catch (IdempotencyException)
             {
-                return Accepted();
+                return Accepted();         
             }
             catch (AggregateNotFoundException)
             {
